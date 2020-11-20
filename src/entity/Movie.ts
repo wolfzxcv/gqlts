@@ -4,9 +4,9 @@ import { Field, Int, ObjectType } from 'type-graphql'
 @ObjectType()
 @Entity()
 export class Movie extends BaseEntity {
-  @Field(() => Int)
-  @PrimaryGeneratedColumn()
-  id: number
+  @Field()
+  @PrimaryGeneratedColumn('uuid')
+  id: string
 
   @Field()
   @Column()

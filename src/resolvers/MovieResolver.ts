@@ -1,5 +1,5 @@
 import { Resolver, Mutation, Arg, Int, Query, InputType, Field } from 'type-graphql'
-import { Movie } from '../../src/entity/Movie'
+import { Movie } from '../entity/Movie'
 
 @InputType()
 class MovieInput {
@@ -28,13 +28,16 @@ export class MovieResolver {
   }
 
   @Mutation(() => String)
-  async updateMovie(@Arg('id', () => Int) id: number, @Arg('input', () => MovieUpdateInput) input: MovieUpdateInput) {
+  async updateMovie(
+    @Arg('id', () => String) id: string,
+    @Arg('input', () => MovieUpdateInput) input: MovieUpdateInput
+  ) {
     await Movie.update({ id }, input)
     return `${id} updated successfully`
   }
 
   @Mutation(() => String)
-  async deleteMovie(@Arg('id', () => Int) id: number) {
+  async deleteMovie(@Arg('id', () => String) id: string) {
     await Movie.delete({ id })
     return `${id} deleted successfully`
   }
