@@ -5,22 +5,35 @@ import { Field, ObjectType } from 'type-graphql'
 @Entity()
 export class User extends BaseEntity {
   @Field()
-  @PrimaryColumn()
+  @PrimaryColumn({
+    length: 20
+  })
   username: string
 
   @Field()
   @Column()
+  password: string
+
+  @Field()
+  @Column({
+    length: 50,
+    unique: true
+  })
   email: string
 
   @Field()
   @Column()
-  firstName: string
-
-  @Field()
-  @Column()
-  lastName: string
+  imageURl: string
 
   @Field()
   @Column()
   age: number
+
+  @Field()
+  @Column('timestamp without time zone')
+  createAt: string
+
+  @Field()
+  @Column('timestamp without time zone')
+  updateAt: string
 }

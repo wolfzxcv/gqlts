@@ -9,7 +9,10 @@ export class Movie extends BaseEntity {
   id: string
 
   @Field()
-  @Column()
+  @Column({
+    length: 50,
+    unique: true
+  })
   title: string
 
   @Field(() => Int)

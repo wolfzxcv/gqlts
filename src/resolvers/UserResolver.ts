@@ -61,4 +61,15 @@ export class UserResolver {
   getUsers() {
     return User.find()
   }
+
+  @Query(() => User)
+  async getUser(@Arg('username', () => String) username: string) {
+    try {
+      const result = await User.find({ where: { username } })
+      return result[0]
+    } catch (e) {
+      console.log(e)
+      return `Can't find username ${username}`
+    }
+  }
 }
