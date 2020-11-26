@@ -30,10 +30,10 @@ export class User extends BaseEntity {
   age: number
 
   @Field()
-  @Column('timestamp without time zone', { default: () => 'LOCALTIMESTAMP' })
+  @Column('timestamp without time zone')
   createAt: string
 
   @Field()
-  @Column('timestamp without time zone', { onUpdate: 'NOW()', nullable: true })
+  @Column('timestamp without time zone', { nullable: true })
   updateAt: string
 }

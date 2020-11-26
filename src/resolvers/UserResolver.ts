@@ -1,8 +1,11 @@
 import { Resolver, Mutation, Arg, Int, Query, InputType, Field } from 'type-graphql'
 import { User } from '../entity/User'
+import bcrypt from 'bcryptjs'
+import { RegisterError } from '../../@types'
+import { UserInputError } from 'apollo-server-express'
 
 @InputType()
-class UserInput {
+class RegisterInput {
   @Field(() => String)
   username: string
 
@@ -13,16 +16,13 @@ class UserInput {
   password: string
 
   @Field(() => String)
+  confirmPassword: string
+
+  @Field(() => String)
   imageURL: string
 
   @Field(() => Int)
   age: number
-}
-
-@InputType()
-class RegisterInput extends UserInput {
-  @Field(() => String)
-  confirmPassword: string
 }
 
 @InputType()
@@ -43,16 +43,45 @@ class UpdateInput {
 @Resolver()
 export class UserResolver {
   @Mutation(() => User)
-  async createUser(@Arg('options', () => UserInput) options: RegisterInput) {
-    const { username, email, password, confirmPassword, imageURL, age } = options
+  async createUser(@Arg('options', () => RegisterInput) options: RegisterInput) {
+    let { username, email, password, confirmPassword, imageURL, age } = options
+    const errors = {} as RegisterError
 
-    console.log(confirmPassword)
     try {
-      const user = await User.create({ username, email, password, imageURL, age }).save()
+      // Validate input data
+      if (!username || !username?.trim()) errors.username = 'username must not be empty'
+      if (!email || !email?.trim()) errors.email = 'email must not be empty'
+      if (!password || !password?.trim()) errors.password = 'password must not be empty'
+      if (!confirmPassword || !confirmPassword?.trim()) errors.confirmPassword = 'repeat password must not be empty'
+      if (!imageURL || !imageURL?.trim()) errors.imageURL = 'imageURL must not be empty'
+      if (!age || typeof age !== 'number') errors.age = 'age must not be empty'
+
+      // Check if username/ email exists
+      // const userByUsername = await User.findOne({ where: { username } })
+      // const userByEmail = await User.findOne({ where: { email } })
+      // console.log(userByUsername, userByEmail)
+
+      // if (userByUsername) errors.username = 'Username is taken'
+
+      // if (userByEmail) errors.email = 'Email is taken'
+      // Hash password
+      password = await bcrypt.hash(password, 6)
+
+      if (Object.keys(errors).length) {
+        throw errors
+      }
+
+      // Create user
+      const createAt = new Date().toLocaleString()
+      const user = await User.create({ username, email, password, imageURL, age, createAt }).save()
+      // Return user
       return user
     } catch (e) {
-      console.log(e)
-      throw e
+      // console.log(e)
+      // if (e.name === 'QueryFailedError') {
+      //   errors.message = e.detail || e.exception.detail || 'ERROR!!'
+      // }
+      throw new UserInputError('Input error', { errors: e })
     }
   }
 
@@ -79,11 +108,15 @@ export class UserResolver {
   @Query(() => User)
   async getUser(@Arg('username', () => String) username: string) {
     try {
-      const result = await User.find({ where: { username } })
-      return result[0]
+      const result = await User.findOne({ where: { username } })
+      if (!result) {
+        throw result
+      }
+
+      return result
     } catch (e) {
       console.log(e)
-      return `Can't find username ${username}`
+      throw new UserInputError(`Can't find username ${username}`)
     }
   }
 }
