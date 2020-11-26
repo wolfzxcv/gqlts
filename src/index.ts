@@ -9,22 +9,33 @@ import { UserResolver } from './resolvers/UserResolver'
 ;(async () => {
   const app = express()
 
-  const options = await getConnectionOptions(process.env.NODE_ENV || 'development')
+  try {
+    const options = await getConnectionOptions(process.env.NODE_ENV || 'development')
 
-  await createConnection({ ...options, name: 'default', synchronize: false })
-  console.log('database ok')
+    await createConnection({ ...options, name: 'default', synchronize: false })
+    console.log('database ok')
+  } catch (e) {
+    console.log(e)
+    console.log('database connected failed!')
+  }
 
-  const apolloServer = new ApolloServer({
-    schema: await buildSchema({
-      resolvers: [HelloWorldResolver, MovieResolver, UserResolver],
-      validate: true
-    }),
-    context: ({ req, res }) => ({ req, res })
-  })
-  console.log('apollo server ok')
+  try {
+    const apolloServer = new ApolloServer({
+      schema: await buildSchema({
+        resolvers: [HelloWorldResolver, MovieResolver, UserResolver],
+        validate: true
+      }),
+      context: ({ req, res }) => ({ req, res })
+    })
+    console.log('apollo server ok')
 
-  apolloServer.applyMiddleware({ app, cors: false })
-  const defaultPort = 8081
+    apolloServer.applyMiddleware({ app, cors: false })
+  } catch (e) {
+    console.log(e)
+    console.log('apollo server failed!')
+  }
+
+  const defaultPort = 8080
   const port = process.env.PORT || defaultPort
   app.listen(port, () => {
     console.log(
