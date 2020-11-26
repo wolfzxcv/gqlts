@@ -10,25 +10,31 @@ class UserInput {
   email: string
 
   @Field(() => String)
-  firstName: string
+  password: string
 
   @Field(() => String)
-  lastName: string
+  imageURL: string
 
   @Field(() => Int)
   age: number
 }
 
 @InputType()
-class UserUpdateInput {
+class RegisterInput extends UserInput {
+  @Field(() => String)
+  confirmPassword: string
+}
+
+@InputType()
+class UpdateInput {
   @Field(() => String, { nullable: true })
   email?: string
 
   @Field(() => String, { nullable: true })
-  firstName?: string
+  password?: string
 
   @Field(() => String, { nullable: true })
-  lastName?: string
+  imageURL?: string
 
   @Field(() => Int, { nullable: true })
   age?: number
@@ -37,15 +43,23 @@ class UserUpdateInput {
 @Resolver()
 export class UserResolver {
   @Mutation(() => User)
-  async createUser(@Arg('options', () => UserInput) options: UserInput) {
-    const user = await User.create(options).save()
-    return user
+  async createUser(@Arg('options', () => UserInput) options: RegisterInput) {
+    const { username, email, password, confirmPassword, imageURL, age } = options
+
+    console.log(confirmPassword)
+    try {
+      const user = await User.create({ username, email, password, imageURL, age }).save()
+      return user
+    } catch (e) {
+      console.log(e)
+      throw e
+    }
   }
 
   @Mutation(() => String)
   async updateUser(
     @Arg('username', () => String) username: string,
-    @Arg('input', () => UserUpdateInput) input: UserUpdateInput
+    @Arg('input', () => UpdateInput) input: UpdateInput
   ) {
     await User.update({ username }, input)
     return `${username} updated successfully`

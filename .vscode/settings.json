@@ -6,5 +6,5 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
 
-  "cSpell.words": ["asynciterable", "esnext", "postgres", "typeorm"]
+  "cSpell.words": ["asynciterable", "esnext", "LOCALTIMESTAMP", "postgres", "typeorm"]
 }

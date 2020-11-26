@@ -23,17 +23,17 @@ export class User extends BaseEntity {
 
   @Field()
   @Column()
-  imageURl: string
+  imageURL: string
 
   @Field()
-  @Column()
+  @Column({ default: 18 })
   age: number
 
   @Field()
-  @Column('timestamp without time zone')
+  @Column('timestamp without time zone', { default: () => 'LOCALTIMESTAMP' })
   createAt: string
 
   @Field()
-  @Column('timestamp without time zone')
+  @Column('timestamp without time zone', { onUpdate: 'NOW()', nullable: true })
   updateAt: string
 }
