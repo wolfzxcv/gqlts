@@ -3,13 +3,23 @@ import { User } from '../entity/User'
 import bcrypt from 'bcryptjs'
 import { RegisterError } from '../../@types'
 import { UserInputError } from 'apollo-server-express'
+import { getManager } from 'typeorm'
+import { IsEmail, IsFQDN, IsNotEmpty, MaxLength, MinLength, validate } from 'class-validator'
 
 @InputType()
 class RegisterInput {
   @Field(() => String)
+  @IsNotEmpty({ message: 'username must not be empty' })
+  @MinLength(6, {
+    message: 'username is too short'
+  })
+  @MaxLength(20, {
+    message: 'username is too long'
+  })
   username: string
 
   @Field(() => String)
+  @IsEmail()
   email: string
 
   @Field(() => String)
@@ -18,6 +28,7 @@ class RegisterInput {
   @Field(() => String)
   confirmPassword: string
 
+  @IsFQDN()
   @Field(() => String)
   imageURL: string
 
@@ -45,6 +56,15 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(@Arg('options', () => RegisterInput) options: RegisterInput) {
     let { username, email, password, confirmPassword, imageURL, age } = options
+
+    const errors11 = await validate(options)
+    console.log(errors11)
+    if (errors11.length > 0) {
+      throw new Error('Validation failed!')
+    } else {
+      await getManager().save(options)
+    }
+
     const errors = {} as RegisterError
 
     try {
