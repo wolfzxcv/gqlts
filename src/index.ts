@@ -21,6 +21,7 @@ import { UserResolver } from './resolvers/UserResolver'
 
   try {
     const apolloServer = new ApolloServer({
+      playground: true,
       schema: await buildSchema({
         resolvers: [HelloWorldResolver, MovieResolver, UserResolver],
         validate: true
@@ -37,9 +38,11 @@ import { UserResolver } from './resolvers/UserResolver'
 
   const defaultPort = 8081
   const port = process.env.PORT || defaultPort
+  const address =
+    process.env.NODE_ENV === 'production' && process.env.BASE_URL
+      ? `${process.env.BASE_URL}:${port}/graphql`
+      : `http://localhost:${port}/graphql`
   app.listen(port, () => {
-    console.log(
-      `server started at ${port === defaultPort ? `http://localhost:${defaultPort}/graphql` : process.env.PORT}`
-    )
+    console.log(`server started at ${address}`)
   })
 })()
