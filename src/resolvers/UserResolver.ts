@@ -1,25 +1,16 @@
 import { Resolver, Mutation, Arg, Int, Query, InputType, Field } from 'type-graphql'
 import { User } from '../entity/User'
 import bcrypt from 'bcryptjs'
-import { RegisterError } from '../../@types'
-import { UserInputError } from 'apollo-server-express'
-import { getManager } from 'typeorm'
-import { IsEmail, IsFQDN, IsNotEmpty, MaxLength, MinLength, validate } from 'class-validator'
+import jwt from 'jsonwebtoken'
+import { UserError } from '../../@types'
+import { AuthenticationError, UserInputError } from 'apollo-server-express'
 
 @InputType()
 class RegisterInput {
   @Field(() => String)
-  @IsNotEmpty({ message: 'username must not be empty' })
-  @MinLength(6, {
-    message: 'username is too short'
-  })
-  @MaxLength(20, {
-    message: 'username is too long'
-  })
   username: string
 
   @Field(() => String)
-  @IsEmail()
   email: string
 
   @Field(() => String)
@@ -28,7 +19,6 @@ class RegisterInput {
   @Field(() => String)
   confirmPassword: string
 
-  @IsFQDN()
   @Field(() => String)
   imageURL: string
 
@@ -56,16 +46,7 @@ export class UserResolver {
   @Mutation(() => User)
   async createUser(@Arg('options', () => RegisterInput) options: RegisterInput) {
     let { username, email, password, confirmPassword, imageURL, age } = options
-
-    const errors11 = await validate(options)
-    console.log(errors11)
-    if (errors11.length > 0) {
-      throw new Error('Validation failed!')
-    } else {
-      await getManager().save(options)
-    }
-
-    const errors = {} as RegisterError
+    const errors = {} as UserError
 
     try {
       // Validate input data
@@ -77,13 +58,16 @@ export class UserResolver {
       if (!age || typeof age !== 'number') errors.age = 'age must not be empty'
 
       // Check if username/ email exists
-      // const userByUsername = await User.findOne({ where: { username } })
-      // const userByEmail = await User.findOne({ where: { email } })
-      // console.log(userByUsername, userByEmail)
+      const duplicated = await User.findOne({ where: [{ username }, { email }] })
 
-      // if (userByUsername) errors.username = 'Username is taken'
+      if (duplicated?.username === username) {
+        errors.username = 'Username is taken'
+      }
 
-      // if (userByEmail) errors.email = 'Email is taken'
+      if (duplicated?.email === email) {
+        errors.email = 'Email is taken'
+      }
+
       // Hash password
       password = await bcrypt.hash(password, 6)
 
@@ -94,13 +78,11 @@ export class UserResolver {
       // Create user
       const createAt = new Date().toLocaleString()
       const user = await User.create({ username, email, password, imageURL, age, createAt }).save()
+
       // Return user
       return user
     } catch (e) {
-      // console.log(e)
-      // if (e.name === 'QueryFailedError') {
-      //   errors.message = e.detail || e.exception.detail || 'ERROR!!'
-      // }
+      console.log(e)
       throw new UserInputError('Input error', { errors: e })
     }
   }
@@ -110,7 +92,8 @@ export class UserResolver {
     @Arg('username', () => String) username: string,
     @Arg('input', () => UpdateInput) input: UpdateInput
   ) {
-    await User.update({ username }, input)
+    const updateAt = new Date().toLocaleString()
+    await User.update({ username }, { ...input, updateAt })
     return `${username} updated successfully`
   }
 
@@ -126,17 +109,46 @@ export class UserResolver {
   }
 
   @Query(() => User)
-  async getUser(@Arg('username', () => String) username: string) {
+  async getUser(@Arg('username', () => String) username: RegisterInput['username']) {
     try {
-      const result = await User.findOne({ where: { username } })
-      if (!result) {
-        throw result
+      const user = await User.findOne({ where: { username } })
+
+      if (!user) {
+        throw new UserInputError(`User ${username} not found`)
       }
 
-      return result
+      return user
     } catch (e) {
       console.log(e)
-      throw new UserInputError(`Can't find username ${username}`)
+      throw e
+    }
+  }
+
+  @Query(() => User)
+  async login(
+    @Arg('username', () => String) username: RegisterInput['username'],
+    @Arg('password', () => String) password: RegisterInput['password']
+  ) {
+    try {
+      const user = await User.findOne({ where: { username } })
+      if (!user) {
+        throw new UserInputError(`User ${username} not found`)
+      }
+
+      const passwordIsCorrect = await bcrypt.compare(password, user.password)
+
+      if (!passwordIsCorrect) {
+        throw new AuthenticationError('Password is incorrect')
+      }
+
+      const token = jwt.sign({ username }, process.env.JWT_SECRET || '', { expiresIn: 60 * 60 })
+
+      user.token = token
+
+      return user
+    } catch (e) {
+      console.log(e)
+      throw e
     }
   }
 }
