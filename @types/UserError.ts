@@ -1,4 +1,4 @@
-export interface RegisterError {
+export interface UserError {
   username?: string
   email?: string
   password?: string

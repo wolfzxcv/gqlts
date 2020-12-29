@@ -1,1 +1,1 @@
-export * from './RegisterError'
+export * from './UserError'
