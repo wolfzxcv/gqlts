@@ -30,6 +30,10 @@ export class User extends BaseEntity {
   age: number
 
   @Field()
+  @Column({ default: 'member' })
+  role: string
+
+  @Field()
   @Column(process.env.NODE_ENV === 'development' ? 'datetime' : 'timestamp without time zone')
   createAt: string
 
@@ -38,5 +42,8 @@ export class User extends BaseEntity {
   updateAt: string
 
   @Field()
-  token: string
+  accessToken: string
+
+  @Field()
+  refreshToken: string
 }
