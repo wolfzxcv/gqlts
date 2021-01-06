@@ -1,8 +1,8 @@
-import { Resolver, Mutation, Arg, Int, Query, InputType, Field, UseMiddleware } from 'type-graphql'
-import { User } from '../entity/User'
+import { Resolver, Mutation, Arg, Int, Query, InputType, Field, UseMiddleware, Ctx } from 'type-graphql'
+import { LoginUser, Token, User } from '../entity'
+import { MyContext, UserError } from '../../@types'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { UserError } from '../../@types'
 import { UserInputError } from 'apollo-server-express'
 import dayjs from 'dayjs'
 import { IsEmail, IsFQDN, IsNotEmpty, Max, MaxLength, Min, MinLength } from 'class-validator'
@@ -82,6 +82,12 @@ export class UserResolver {
     }
 
     return user
+  }
+
+  private getToken(info: Object, period: string) {
+    return jwt.sign(info, process.env.TOKEN_SECRET!, {
+      expiresIn: period
+    })
   }
 
   @Mutation(() => User)
@@ -184,7 +190,7 @@ export class UserResolver {
     }
   }
 
-  @Query(() => User)
+  @Query(() => LoginUser)
   async login(
     @Arg('username', () => String) username: RegisterInput['username'],
     @Arg('password', () => String) password: RegisterInput['password']
@@ -199,13 +205,11 @@ export class UserResolver {
         throw error
       }
 
-      const accessToken = jwt.sign({ username, role: user.role }, process.env.ACCESS_TOKEN_SECRET!, {
-        expiresIn: '10m'
-      })
+      const info = { username, role: user.role }
 
-      const refreshToken = jwt.sign({ username: user.username, role: user.role }, process.env.REFRESH_TOKEN_SECRET!, {
-        expiresIn: '1h'
-      })
+      const accessToken = this.getToken(info, '10m')
+
+      const refreshToken = this.getToken(info, '1h')
 
       const createAt = this.formatTime(user.createAt)
 
@@ -218,6 +222,20 @@ export class UserResolver {
     } catch (e) {
       console.error(e)
       throw new UserInputError('login error', { errors: e })
+    }
+  }
+
+  @Query(() => Token)
+  @UseMiddleware(isAuth)
+  async refreshToken(@Ctx() ctx: MyContext['req']['info']) {
+    const info = { username: ctx.username, role: ctx.role }
+
+    const accessToken = this.getToken(info, '10m')
+
+    const refreshToken = this.getToken(info, '1h')
+    return {
+      accessToken,
+      refreshToken
     }
   }
 }
