@@ -30,13 +30,23 @@ export class User extends BaseEntity {
   age: number
 
   @Field()
+  @Column({ default: 'member' })
+  role: string
+
+  @Field()
   @Column(process.env.NODE_ENV === 'development' ? 'datetime' : 'timestamp without time zone')
   createAt: string
 
   @Field()
   @Column(process.env.NODE_ENV === 'development' ? 'datetime' : 'timestamp without time zone', { nullable: true })
   updateAt: string
+}
+
+@ObjectType()
+export class LoginUser extends User {
+  @Field()
+  accessToken: string
 
   @Field()
-  token: string
+  refreshToken: string
 }
