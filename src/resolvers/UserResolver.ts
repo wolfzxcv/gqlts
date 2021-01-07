@@ -209,7 +209,7 @@ export class UserResolver {
 
       const accessToken = this.getToken(info, '10m')
 
-      const refreshToken = this.getToken(info, '1h')
+      const refreshToken = this.getToken(info, '30m')
 
       const createAt = this.formatTime(user.createAt)
 
