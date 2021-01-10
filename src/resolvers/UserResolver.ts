@@ -84,9 +84,15 @@ export class UserResolver {
     return user
   }
 
-  private getToken(info: Object, period: string) {
+  private getToken(info: Object, isRefreshToken?: true) {
+    let time
+    if (isRefreshToken) {
+      time = '30m'
+    } else {
+      time = '10m'
+    }
     return jwt.sign(info, process.env.TOKEN_SECRET!, {
-      expiresIn: period
+      expiresIn: time
     })
   }
 
@@ -207,9 +213,9 @@ export class UserResolver {
 
       const info = { username, role: user.role }
 
-      const accessToken = this.getToken(info, '10m')
+      const accessToken = this.getToken(info)
 
-      const refreshToken = this.getToken(info, '30m')
+      const refreshToken = this.getToken(info, true)
 
       const createAt = this.formatTime(user.createAt)
 
@@ -230,9 +236,9 @@ export class UserResolver {
   async refreshToken(@Ctx() ctx: MyContext['req']['info']) {
     const info = { username: ctx.username, role: ctx.role }
 
-    const accessToken = this.getToken(info, '10m')
+    const accessToken = this.getToken(info)
 
-    const refreshToken = this.getToken(info, '1h')
+    const refreshToken = this.getToken(info, true)
     return {
       accessToken,
       refreshToken
