@@ -1,19 +1,25 @@
 pipeline {
     agent { label 'docker' }
 
+    environment {
+        PATH = "$PATH:/usr/local/bin"
+    }
+
     stages {
-        stage('Initialize') {
-        echo 'Initializing...'
-        def node = tool name: 'Node-14.15.4', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-        env.PATH = "${node}/bin:${env.PATH}"
-
-        sh 'node -v'
+        stage('Fetch from GitHub') {
+            steps {
+                sh 'git pull'
+                sh 'git checkout develop'
+                sh 'git branch'
+            }
         }
-
         stage('Build') {
             steps {
-                npm i
-                npm run build
+                nodejs(nodeJSInstallationName: 'node14.15.4') {
+                sh 'npm --version'
+                sh 'npm i'
+                sh 'npm run build'
+                }
             }
         }
         stage('Test') {
@@ -23,7 +29,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh 'docker-compose -f build.yml up --exit-code-from fpm_build --remove-orphans fpm_build'
+                sh '/usr/local/bin/docker-compose -f docker-compose.yml up -d --build'
             }
         }
     }
