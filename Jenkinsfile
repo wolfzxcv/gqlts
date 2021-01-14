@@ -20,7 +20,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '---start deploy---'
-                sh 'copy ~/Desktop/docker-compose.yml'
+                sh 'sudo cp ~/Desktop/docker-compose.yml ~/var/lib/jenkins/workspace/'
                 sh 'sudo /usr/local/bin/docker-compose docker-compose.yml up -d --build'
             }
         }
