@@ -1,18 +1,7 @@
 pipeline {
-    agent { label 'docker' }
-
-    environment {
-        PATH = "$PATH:/usr/local/bin"
-    }
+    agent any
 
     stages {
-        stage('Fetch from GitHub') {
-            steps {
-                sh 'git pull'
-                sh 'git checkout develop'
-                sh 'git branch'
-            }
-        }
         stage('Build') {
             steps {
                 nodejs(nodeJSInstallationName: 'node14.15.4') {
@@ -29,7 +18,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh '/usr/local/bin/docker-compose -f docker-compose.yml up -d --build'
+                sh 'sudo docker-compose.yml up -d --build'
             }
         }
     }
