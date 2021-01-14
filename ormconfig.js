@@ -1,6 +1,6 @@
 module.exports = [
   {
-    name: 'development',
+    name: 'production',
     type: 'mysql',
     host: process.env.DEV_DB_HOST,
     port: 3306,
@@ -14,7 +14,7 @@ module.exports = [
     subscribers: ['src/subscriber/**/*.ts']
   },
   {
-    name: 'production',
+    name: 'development',
     type: 'postgres',
     host: process.env.PROD_DB_HOST,
     port: 5432,

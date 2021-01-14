@@ -34,11 +34,11 @@ export class User extends BaseEntity {
   role: string
 
   @Field()
-  @Column(process.env.NODE_ENV === 'development' ? 'datetime' : 'timestamp without time zone')
+  @Column(process.env.NODE_ENV === 'production' ? 'datetime' : 'timestamp without time zone')
   createAt: string
 
   @Field()
-  @Column(process.env.NODE_ENV === 'development' ? 'datetime' : 'timestamp without time zone', { nullable: true })
+  @Column(process.env.NODE_ENV === 'production' ? 'datetime' : 'timestamp without time zone', { nullable: true })
   updateAt: string
 }
 
