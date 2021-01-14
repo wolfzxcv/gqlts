@@ -1,9 +1,9 @@
 module.exports = [
   {
-    name: 'production',
-    type: 'mysql',
+    name: 'development',
+    type: 'postgres',
     host: process.env.DEV_DB_HOST,
-    port: 3306,
+    port: 5432,
     username: process.env.DEV_DB_USERNAME,
     password: process.env.DEV_DB_PASSWORD,
     database: process.env.DEV_DB_NAME,
@@ -14,10 +14,10 @@ module.exports = [
     subscribers: ['src/subscriber/**/*.ts']
   },
   {
-    name: 'development',
-    type: 'postgres',
+    name: 'production',
+    type: 'mysql',
     host: process.env.PROD_DB_HOST,
-    port: 5432,
+    port: 3306,
     username: process.env.PROD_DB_USERNAME,
     password: process.env.PROD_DB_PASSWORD,
     database: process.env.PROD_DB_NAME,
