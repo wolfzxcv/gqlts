@@ -20,8 +20,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '---start deploy---'
-                sh 'ssh -T pmduser@10.20.30.215'
-                sh 'cd ~/Desktop/cicd/jenkins_home/workspace && docker-compose up -d --build'
+                sh 'ssh -T pmduser@10.20.30.215 "cd ~/Desktop/cicd/jenkins_home/workspace && docker-compose up -d --build"'
             }
         }
     }
