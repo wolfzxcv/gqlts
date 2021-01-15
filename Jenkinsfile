@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo '---start deploy---'
                 // sh 'sudo cp /Desktop/docker-compose.yml ~/workspace/'
-                sh 'sudo /usr/local/bin/docker-compose docker-compose.yml up -d --build'
+                sh 'sudo /usr/local/bin/docker-compose docker-compose up -d --build'
             }
         }
     }
