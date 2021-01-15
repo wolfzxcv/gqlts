@@ -20,16 +20,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '---start deploy---'
-                sh 'ssh pmduser@10.20.30.215'
-                sh 'cd ~/cicd/jenkins_home/workspace && docker-compose up -d --build'
-                // sh 'ls'
-                // sh 'cat .env'
-                // dir('../') {
-                // sh 'cat docker-compose.yml'
-                // sh 'docker-compose up -d --build'
-                // }
-                // sh 'sudo cp /Desktop/docker-compose.yml ~/workspace/'
-                // sh 'sudo /usr/local/bin/ docker-compose up -d --build'
+                sh 'docker-compose up -d --build'
             }
         }
     }
