@@ -21,10 +21,9 @@ pipeline {
             steps {
                 echo '---start deploy---'
                 sh 'ls'
-                echo 'point to dir'
+                sh 'cat .env'
                 dir('../') {
-                sh 'ls'
-                sh 'sudo chown -R admin:jenkins ./'
+                sh 'cat docker-compose.yml'
                 sh 'docker-compose up -d --build'
                 }
                 // sh 'sudo cp /Desktop/docker-compose.yml ~/workspace/'
