@@ -20,8 +20,15 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '---start deploy---'
+                sh 'ls'
+                echo 'point to dir'
+                dir('../') {
+                sh 'ls'
+                sh 'sudo chown -R admin:jenkins ./'
+                sh 'docker-compose up -d --build'
+                }
                 // sh 'sudo cp /Desktop/docker-compose.yml ~/workspace/'
-                sh 'sudo /usr/local/bin/docker-compose docker-compose up -d --build'
+                // sh 'sudo /usr/local/bin/ docker-compose up -d --build'
             }
         }
     }
