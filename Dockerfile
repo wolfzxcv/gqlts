@@ -1,4 +1,4 @@
-FROM node:14.15.1-alpine3.10
+FROM node:14.15.4-alpine3.10
 
 ENV APP_ROOT /app/
 # Create Directory for the Container

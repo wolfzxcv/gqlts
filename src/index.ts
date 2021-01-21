@@ -23,6 +23,7 @@ import { UserResolver } from './resolvers/UserResolver'
     const apolloServer = new ApolloServer({
       introspection: true,
       playground: true,
+      tracing: true,
       schema: await buildSchema({
         resolvers: [HelloWorldResolver, MovieResolver, UserResolver],
         validate: true
