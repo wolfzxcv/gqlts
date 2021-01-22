@@ -12,7 +12,7 @@ import { UserResolver } from './resolvers/UserResolver'
   try {
     const options = await getConnectionOptions(process.env.NODE_ENV || 'development')
 
-    await createConnection({ ...options, name: 'default', synchronize: true })
+    await createConnection({ ...options, name: 'default', synchronize: false })
     console.log('database ok')
   } catch (e) {
     console.log(e)
