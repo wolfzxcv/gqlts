@@ -1,7 +1,7 @@
 import { BaseEntity } from 'typeorm'
 import { Field, ObjectType } from 'type-graphql'
 
-@ObjectType()
+@ObjectType({ description: 'Token' })
 export class Token extends BaseEntity {
   @Field()
   accessToken: string

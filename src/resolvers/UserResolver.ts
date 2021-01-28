@@ -1,14 +1,14 @@
-import { Resolver, Mutation, Arg, Int, Query, InputType, Field, UseMiddleware, Ctx } from 'type-graphql'
+import { Resolver, Mutation, Arg, Query, InputType, Field, UseMiddleware, Ctx } from 'type-graphql'
 import { LoginUser, Token, User } from '../entity'
 import { MyContext, UserError } from '../../@types'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserInputError } from 'apollo-server-express'
 import dayjs from 'dayjs'
-import { IsEmail, IsFQDN, IsNotEmpty, Max, MaxLength, Min, MinLength } from 'class-validator'
+import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
 import { isAuth } from '../middleware/isAuth'
 
-@InputType()
+@InputType({ description: '註冊帳號' })
 class RegisterInput {
   @Field(() => String)
   @MinLength(5)
@@ -28,17 +28,14 @@ class RegisterInput {
   @IsNotEmpty()
   confirmPassword: string
 
-  @Field(() => String)
-  @IsFQDN()
-  imageURL: string
+  @Field(() => String, { nullable: true })
+  imageUUID?: string
 
-  @Field(() => Int, { nullable: true })
-  @Min(18)
-  @Max(99)
-  age: number
+  @Field(() => String, { nullable: true })
+  birthday?: string
 }
 
-@InputType()
+@InputType({ description: '更新帳號資料' })
 class UpdateInput {
   @Field(() => String, { nullable: true })
   @IsEmail()
@@ -50,13 +47,10 @@ class UpdateInput {
   password?: string
 
   @Field(() => String, { nullable: true })
-  @IsFQDN()
-  imageURL?: string
+  imageUUID?: string
 
-  @Field(() => Int, { nullable: true })
-  @Min(18)
-  @Max(99)
-  age?: number
+  @Field(() => String, { nullable: true })
+  birthday?: string
 
   @Field(() => String, { nullable: true })
   role?: 'root' | 'admin' | 'member'
@@ -97,8 +91,8 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  async createUser(@Arg('options', () => RegisterInput) options: RegisterInput) {
-    let { username, email, password, confirmPassword, imageURL, age } = options
+  async register(@Arg('options', () => RegisterInput) options: RegisterInput) {
+    let { username, email, password, confirmPassword, imageUUID, birthday } = options
     const errors = {} as UserError
 
     try {
@@ -126,13 +120,13 @@ export class UserResolver {
 
       // Create user
       const createAt = this.formatTime()
-      const user = await User.create({ username, email, password, imageURL, age, createAt }).save()
+      const user = await User.create({ username, email, password, imageUUID, birthday, createAt }).save()
 
       // Return user
       return user
     } catch (e) {
       console.log(e)
-      throw new UserInputError('createUser error', { errors: e })
+      throw new UserInputError('register error', { errors: e })
     }
   }
 
@@ -168,7 +162,7 @@ export class UserResolver {
 
   @Query(() => [User])
   @UseMiddleware(isAuth)
-  async getUsers() {
+  async users() {
     try {
       const users = await User.find()
 
@@ -177,13 +171,13 @@ export class UserResolver {
       return res
     } catch (e) {
       console.error(e)
-      throw new UserInputError('getUsers error', { errors: e })
+      throw new UserInputError('Fetch users error', { errors: e })
     }
   }
 
   @Query(() => User)
   @UseMiddleware(isAuth)
-  async getUser(@Arg('username', () => String) username: RegisterInput['username']) {
+  async user(@Arg('username', () => String) username: RegisterInput['username']) {
     try {
       const user = await this.checkUserExists(username)
 
@@ -192,7 +186,7 @@ export class UserResolver {
       return { ...user, createAt }
     } catch (e) {
       console.error(e)
-      throw new UserInputError('getUser error', { errors: e })
+      throw new UserInputError('Fetch user error', { errors: e })
     }
   }
 

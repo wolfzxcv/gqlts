@@ -1,3 +1,5 @@
-export * from './Movie'
+export * from './Reservation'
+export * from './TimeList'
+export * from './Timetable'
 export * from './Token'
 export * from './User'

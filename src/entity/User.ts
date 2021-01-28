@@ -1,45 +1,56 @@
-import { Entity, PrimaryColumn, Column, BaseEntity } from 'typeorm'
-import { Field, Int, ObjectType } from 'type-graphql'
+import { Entity, Column, BaseEntity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Field, ObjectType } from 'type-graphql'
 
-@ObjectType()
+@ObjectType({ description: '使用者資訊' })
 @Entity()
 export class User extends BaseEntity {
   @Field()
-  @PrimaryColumn({
-    length: 20
+  @PrimaryGeneratedColumn('uuid')
+  id: string
+
+  @Field()
+  @Column({
+    length: 20,
+    unique: true,
+    nullable: true
   })
   username: string
 
   @Field()
-  @Column()
+  @Column({ nullable: true })
   password: string
 
   @Field()
   @Column({
     length: 50,
-    unique: true
+    unique: true,
+    nullable: true
   })
   email: string
 
   @Field()
-  @Column()
-  imageURL: string
-
-  @Field(() => Int)
-  @Column({ default: 18 })
-  age: number
+  @Column({ nullable: true })
+  imageUUID: string
 
   @Field()
-  @Column({ default: 'member' })
+  @Column({ nullable: true })
+  birthday: string
+
+  @Field()
+  @Column({ default: 'member', nullable: true })
   role: string
 
   @Field()
-  @Column(process.env.NODE_ENV === 'production' ? 'datetime' : 'timestamp without time zone')
+  @CreateDateColumn({ nullable: true })
   createAt: string
 
   @Field()
-  @Column(process.env.NODE_ENV === 'production' ? 'datetime' : 'timestamp without time zone', { nullable: true })
+  @UpdateDateColumn({ nullable: true })
   updateAt: string
+
+  @Field()
+  @Column({ default: false })
+  isEnabled: boolean
 }
 
 @ObjectType()

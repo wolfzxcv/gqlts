@@ -3,7 +3,7 @@ export interface UserError {
   email?: string
   password?: string
   confirmPassword?: string
-  imageURL?: string
-  age?: string
+  imageUUID?: string
+  birthday?: string
   message?: string
 }

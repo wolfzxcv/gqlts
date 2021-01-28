@@ -4,7 +4,7 @@ import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
 import { HelloWorldResolver } from './resolvers/HelloWorldResolver'
-import { MovieResolver } from './resolvers/MovieResolver'
+import { ReservationResolver } from './resolvers/ReservationResolver'
 import { UserResolver } from './resolvers/UserResolver'
 ;(async () => {
   const app = express()
@@ -12,7 +12,7 @@ import { UserResolver } from './resolvers/UserResolver'
   try {
     const options = await getConnectionOptions(process.env.NODE_ENV || 'development')
 
-    await createConnection({ ...options, name: 'default', synchronize: false })
+    await createConnection({ ...options, name: 'default', synchronize: true })
     console.log('database ok')
   } catch (e) {
     console.log(e)
@@ -25,7 +25,7 @@ import { UserResolver } from './resolvers/UserResolver'
       playground: true,
       tracing: true,
       schema: await buildSchema({
-        resolvers: [HelloWorldResolver, MovieResolver, UserResolver],
+        resolvers: [HelloWorldResolver, ReservationResolver, UserResolver],
         validate: true
       }),
       context: ({ req, res }) => ({ req, res })
