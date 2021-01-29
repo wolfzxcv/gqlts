@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import { createConnection, getConnectionOptions } from 'typeorm'
 import express from 'express'
+import cors from 'cors'
 import { ApolloServer } from 'apollo-server-express'
 import { buildSchema } from 'type-graphql'
 import { HelloWorldResolver } from './resolvers/HelloWorldResolver'
@@ -8,6 +9,8 @@ import { ReservationResolver } from './resolvers/ReservationResolver'
 import { UserResolver } from './resolvers/UserResolver'
 ;(async () => {
   const app = express()
+
+  app.use(cors())
 
   try {
     const options = await getConnectionOptions(process.env.NODE_ENV || 'development')
