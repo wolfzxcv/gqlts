@@ -1,48 +1,101 @@
 import { Resolver, Mutation, Arg, Query, InputType, Field } from 'type-graphql'
 import { Reservation, Timetable } from '../entity'
 import { UserInputError } from 'apollo-server-express'
+import { IsBoolean, MaxLength } from 'class-validator'
 
 @InputType()
 class InfoInput {
-  @Field()
+  @MaxLength(20)
+  @Field({ nullable: true })
   name: string
 
-  @Field()
+  @MaxLength(20)
+  @Field({ nullable: true })
   tel: string
 
-  @Field()
+  @MaxLength(200)
+  @Field({ nullable: true })
   remarks: string
 }
 
 @InputType()
 class TimeListInput {
   @Field()
+  @MaxLength(5)
   time: string
 
   @Field()
+  @IsBoolean()
   isBooked: boolean
 
-  @Field()
+  @Field({ nullable: true })
   info: InfoInput
 }
 
-@InputType({ description: '給API的日期時間格式' })
-class ReservationInput {
+@InputType({ description: 'create,給API的日期時間格式' })
+class ReservationsInput {
   @Field(() => String)
+  @MaxLength(10)
   date: string
 
   @Field(() => [TimeListInput])
   timeList: TimeListInput[]
 }
 
+@InputType({ description: 'update,給API的日期時間格式' })
+class ReservationInput {
+  @Field(() => String)
+  @MaxLength(10)
+  date: string
+
+  @Field()
+  @MaxLength(5)
+  time: string
+
+  @Field()
+  @IsBoolean()
+  isBooked: boolean
+
+  @MaxLength(20)
+  @Field({ nullable: true })
+  name: string
+
+  @MaxLength(20)
+  @Field({ nullable: true })
+  tel: string
+
+  @MaxLength(200)
+  @Field({ nullable: true })
+  remarks: string
+}
+
 @Resolver()
 export class ReservationResolver {
-  private toFrontend(dataFromDatabase: Reservation[]): ReservationInput[] {
-    console.log(dataFromDatabase)
-    return []
+  private toFrontend(dataFromDatabase: Reservation[]): ReservationsInput[] {
+    const result = [] as ReservationsInput[]
+    dataFromDatabase.map(each => {
+      const timeList = {
+        time: each.time,
+        isBooked: each.isBooked,
+        info: {
+          name: each.name || '',
+          tel: each.tel || '',
+          remarks: each.remarks || ''
+        }
+      } as TimeListInput
+      const condition = result.find(x => x.date === each.date)
+      if (condition) {
+        return condition.timeList.push(timeList)
+      } else {
+        const newData = { date: each.date, timeList: [timeList] }
+        return result.push(newData)
+      }
+    })
+
+    return result
   }
 
-  private toDatabase(dataFromFrontend: ReservationInput[]): Reservation[] {
+  private toDatabase(dataFromFrontend: ReservationsInput[]): Reservation[] {
     const output = [] as Reservation[]
 
     for (let i = 0; i < dataFromFrontend.length; i++) {
@@ -71,8 +124,9 @@ export class ReservationResolver {
             singleData.remarks = remarks
           }
 
-          if (name === undefined || tel === undefined || remarks === undefined) {
-            throw new UserInputError('Reservation data error', { errors: 'info is needed' })
+          // 如果isBooked為true,一定要有這三個資訊
+          if (!name || !tel || !remarks) {
+            throw new UserInputError('Reservation data error', { errors: 'If isBooked is true, info is needed' })
           }
         }
 
@@ -83,16 +137,19 @@ export class ReservationResolver {
   }
 
   @Mutation(() => String)
-  async createReservations(@Arg('options', () => [ReservationInput]) options: ReservationInput[]) {
+  async createReservations(@Arg('options', () => [ReservationsInput]) options: ReservationsInput[]) {
     try {
-      const saveData = this.toDatabase(options)
+      if (options.length) {
+        const saveData = this.toDatabase(options)
 
-      await Reservation.delete(Reservation)
-      console.log(saveData)
+        await Reservation.createQueryBuilder().delete().from(Reservation).execute()
 
-      await Reservation.save(saveData)
+        await Reservation.save(saveData)
 
-      return 'Reservation saved successfully'
+        return 'Reservation saved successfully'
+      } else {
+        throw new UserInputError('createReservation error', { errors: 'Options.length is 0' })
+      }
     } catch (e) {
       console.log(e)
       throw new UserInputError('createReservation error', { errors: e })
@@ -100,15 +157,20 @@ export class ReservationResolver {
   }
 
   @Mutation(() => String)
-  async updateReservation(
-    @Arg('date', () => String) date: string,
-    @Arg('input', () => ReservationInput) input: ReservationInput
-  ) {
+  async updateReservation(@Arg('input', () => ReservationInput) input: ReservationInput) {
     try {
-      console.log(input)
-      await Reservation.delete({ date })
-      // TODO  符合該天的值都要刪除,再寫入新的timeList,其餘不更動
-      return `${date} updated successfully`
+      const date = input.date
+      const time = input.time
+
+      const isExist = await Reservation.findOne({ date, time })
+
+      if (isExist) {
+        await Reservation.update({ date, time }, { ...isExist, ...input })
+
+        return `${date} ${time}`
+      } else {
+        throw new UserInputError('updateReservation error', { errors: 'No result' })
+      }
     } catch (e) {
       console.error(e)
       throw new UserInputError('updateReservation error', { errors: e })
@@ -118,21 +180,38 @@ export class ReservationResolver {
   @Query(() => [Timetable])
   async reservations() {
     try {
-      const output = await Reservation.find()
-
-      return this.toFrontend(output)
+      const output = await Reservation.find({ order: { date: 1, time: 1 } })
+      if (output.length) {
+        return this.toFrontend(output)
+      } else {
+        return []
+      }
     } catch (e) {
       console.error(e)
       throw new UserInputError('Fetch reservations error', { errors: e })
     }
   }
 
-  @Query(() => Timetable)
-  async reservation(@Arg('date', () => String) date: ReservationInput['date']) {
+  @Query(() => Reservation)
+  async reservation(
+    @Arg('date', () => String) date: ReservationInput['date'],
+    @Arg('time', () => String) time: ReservationInput['time']
+  ) {
     try {
-      const output = await Reservation.find({ date })
+      const output = await Reservation.findOne({ date, time })
 
-      return this.toFrontend(output)
+      if (output) {
+        const formatOutput = {
+          ...output,
+          name: output.name || '',
+          tel: output.tel || '',
+          remarks: output.remarks || ''
+        }
+
+        return formatOutput
+      }
+
+      throw new UserInputError('Fetch reservation error', { errors: 'No result' })
     } catch (e) {
       console.error(e)
       throw new UserInputError('Fetch reservation error', { errors: e })
