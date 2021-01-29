@@ -71,6 +71,10 @@ class ReservationInput {
 
 @Resolver()
 export class ReservationResolver {
+  infoIsNeeded: UserInputError = new UserInputError('Reservation data error', {
+    errors: 'If isBooked is true, info is needed'
+  })
+
   private toFrontend(dataFromDatabase: Reservation[]): ReservationsInput[] {
     const result = [] as ReservationsInput[]
     dataFromDatabase.map(each => {
@@ -126,7 +130,7 @@ export class ReservationResolver {
 
           // 如果isBooked為true,一定要有這三個資訊
           if (!name || !tel || !remarks) {
-            throw new UserInputError('Reservation data error', { errors: 'If isBooked is true, info is needed' })
+            throw this.infoIsNeeded
           }
         }
 
@@ -165,7 +169,24 @@ export class ReservationResolver {
       const isExist = await Reservation.findOne({ date, time })
 
       if (isExist) {
-        await Reservation.update({ date, time }, { ...isExist, ...input })
+        const isBooked = input.isBooked
+
+        const updateData = { ...isExist, ...input }
+
+        if (isBooked) {
+          const hasName = input.name || isExist.name || undefined
+          const hasTel = input.tel || isExist.tel || undefined
+          const hasRemarks = input.remarks || isExist.remarks || undefined
+          if (!hasName || !hasTel || !hasRemarks) {
+            throw this.infoIsNeeded
+          }
+        } else {
+          updateData.name = ''
+          updateData.tel = ''
+          updateData.remarks = ''
+        }
+
+        await Reservation.update({ date, time }, updateData)
 
         return `${date} ${time}`
       } else {
