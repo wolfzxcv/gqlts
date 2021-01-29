@@ -161,7 +161,6 @@ export class UserResolver {
   }
 
   @Query(() => [User])
-  @UseMiddleware(isAuth)
   async users() {
     try {
       const users = await User.find()
@@ -176,7 +175,6 @@ export class UserResolver {
   }
 
   @Query(() => User)
-  @UseMiddleware(isAuth)
   async user(@Arg('username', () => String) username: RegisterInput['username']) {
     try {
       const user = await this.checkUserExists(username)
