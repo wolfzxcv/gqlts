@@ -165,7 +165,11 @@ export class UserResolver {
     try {
       const users = await User.find()
 
-      const res = users.map(x => ({ ...x, createAt: this.formatTime(x.createAt) }))
+      const res = users.map(x => ({
+        ...x,
+        createAt: x.createAt ? this.formatTime(x.createAt) : null,
+        updateAt: x.updateAt ? this.formatTime(x.updateAt) : null
+      }))
 
       return res
     } catch (e) {
@@ -179,9 +183,10 @@ export class UserResolver {
     try {
       const user = await this.checkUserExists(username)
 
-      const createAt = this.formatTime(user.createAt)
+      const createAt = user.createAt ? this.formatTime(user.createAt) : null
+      const updateAt = user.updateAt ? this.formatTime(user.updateAt) : null
 
-      return { ...user, createAt }
+      return { ...user, createAt, updateAt }
     } catch (e) {
       console.error(e)
       throw new UserInputError('Fetch user error', { errors: e })
