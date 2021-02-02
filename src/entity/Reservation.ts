@@ -16,15 +16,15 @@ export class Reservation extends BaseEntity {
   @Column({ default: false })
   isBooked: boolean
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ length: 20, nullable: true })
   name: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ length: 20, nullable: true })
   tel: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ length: 200, nullable: true })
   remarks: string
 }

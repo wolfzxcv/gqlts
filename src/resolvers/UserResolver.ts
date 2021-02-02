@@ -29,10 +29,10 @@ class RegisterInput {
   confirmPassword: string
 
   @Field(() => String, { nullable: true })
-  imageUUID?: string
+  imageUUID: string
 
   @Field(() => String, { nullable: true })
-  birthday?: string
+  birthday: string
 }
 
 @InputType({ description: '更新帳號資料' })
@@ -40,20 +40,20 @@ class UpdateInput {
   @Field(() => String, { nullable: true })
   @IsEmail()
   @MaxLength(50)
-  email?: string
+  email: string
 
   @Field(() => String, { nullable: true })
   @IsNotEmpty()
-  password?: string
+  password: string
 
   @Field(() => String, { nullable: true })
-  imageUUID?: string
+  imageUUID: string
 
   @Field(() => String, { nullable: true })
-  birthday?: string
+  birthday: string
 
   @Field(() => String, { nullable: true })
-  role?: 'root' | 'admin' | 'member'
+  role: 'root' | 'admin' | 'member'
 }
 
 @Resolver()

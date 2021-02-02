@@ -8,7 +8,7 @@ export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({
     length: 20,
     unique: true,
@@ -16,11 +16,11 @@ export class User extends BaseEntity {
   })
   username: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   password: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({
     length: 50,
     unique: true,
@@ -28,23 +28,23 @@ export class User extends BaseEntity {
   })
   email: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   imageUUID: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ nullable: true })
   birthday: string
 
-  @Field()
+  @Field({ nullable: true })
   @Column({ default: 'member', nullable: true })
   role: string
 
-  @Field()
+  @Field({ nullable: true })
   @CreateDateColumn({ nullable: true })
   createAt: string
 
-  @Field()
+  @Field({ nullable: true })
   @UpdateDateColumn({ nullable: true })
   updateAt: string
 
