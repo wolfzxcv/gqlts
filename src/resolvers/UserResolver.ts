@@ -123,7 +123,7 @@ export class UserResolver {
       const user = await User.create({ username, email, password, imageUUID, birthday, createAt }).save()
 
       // Return user
-      return user
+      return { ...user, createAt }
     } catch (e) {
       console.log(e)
       throw new UserInputError('register error', { errors: e })
