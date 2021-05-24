@@ -5,9 +5,10 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserInputError } from 'apollo-server-express'
 import dayjs from 'dayjs'
-import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
+import { IsEmail, IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator'
 import { isAuth } from '../middleware/isAuth'
 
+const birthdayRegex = /^((19|20)\d{2})(-)(((0)[0-9])|((1)[0-2]))(-)([0-2][0-9]|(3)[0-1])$/
 @InputType({ description: '註冊帳號' })
 class RegisterInput {
   @Field(() => String)
@@ -32,6 +33,7 @@ class RegisterInput {
   imageUUID: string
 
   @Field(() => String, { nullable: true })
+  @Matches(birthdayRegex, { message: 'birthday format is invalid' })
   birthday: string
 }
 
@@ -96,7 +98,7 @@ export class UserResolver {
     const errors = {} as UserError
 
     try {
-      // Validate input data
+      // Validate input data, as class-validator don't have trim() by default
       if (!password?.trim()) errors.password = 'password must not be empty'
       if (!confirmPassword?.trim()) errors.confirmPassword = 'repeat password must not be empty'
 
